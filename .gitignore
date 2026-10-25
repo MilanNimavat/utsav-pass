@@ -1,0 +1,23 @@
+# Node & Build artifacts
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Logs & Environment
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env*.local
+.env
+
+# Vitest
+.vitest/
+coverage/
+
+# OS Files
+.DS_Store
+*.pem
