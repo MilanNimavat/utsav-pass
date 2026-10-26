@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model InventoryItem {
+  sku        String   @id
+  name       String
+  priceCents Int
+  remaining  Int
+  updatedAt  DateTime @updatedAt
+
+  @@map("inventory_items")
+}
+
+model Booking {
+  id             String   @id @default(uuid())
+  reference      String   @unique
+  idempotencyKey String   @unique
+  bookerName     String
+  bookerEmail    String
+  bookerPhone    String
+  bookerAge      Int
+  promoCode      String?
+  subtotalCents  Int
+  discountCents  Int
+  totalCents     Int
+  paymentStatus  String   @default("PAID")
+  payloadJson    String
+  createdAt      DateTime @default(now())
+
+  @@map("bookings")
+}

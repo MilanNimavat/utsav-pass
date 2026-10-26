@@ -14,9 +14,11 @@ yarn-error.log*
 .env*.local
 .env
 
-# Vitest
+# Vitest & Databases
 .vitest/
 coverage/
+*.db
+*.db-journal
 
 # OS Files
 .DS_Store
