@@ -6,24 +6,24 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ reference: string }> | { reference: string } }
+  { params }: { params: Promise<{ reference: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const reference = resolvedParams?.reference?.trim();
+    const { reference } = await params;
+    const cleanRef = reference?.trim();
 
-    if (!reference) {
+    if (!cleanRef) {
       return NextResponse.json(
         { ok: false, message: 'Booking reference is required' },
         { status: 400 }
       );
     }
 
-    const snapshot = await getBookingByReference(reference);
+    const snapshot = await getBookingByReference(cleanRef);
 
     if (!snapshot) {
       return NextResponse.json(
-        { ok: false, message: `No confirmed booking found for reference ${reference}` },
+        { ok: false, message: `No confirmed booking found for reference ${cleanRef}` },
         { status: 404 }
       );
     }
