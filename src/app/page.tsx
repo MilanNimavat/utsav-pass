@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { AttendeeDetailsStep } from '@/components/booking/AttendeeDetailsStep';
 import { BookingHeader } from '@/components/booking/BookingHeader';
 import { ConfirmationStep } from '@/components/booking/ConfirmationStep';
+import { EvaluatorToolsBar } from '@/components/booking/EvaluatorToolsBar';
 import { ExtrasStep } from '@/components/booking/ExtrasStep';
 import { PassesStep } from '@/components/booking/PassesStep';
 import { PaymentStep } from '@/components/booking/PaymentStep';
@@ -22,25 +23,26 @@ export default function BookingPage() {
   const [quote, setQuote] = useState<BookingQuote | null>(null);
   const [isLoadingQuote, setIsLoadingQuote] = useState(false);
 
-  // 1. Fetch live stock and catalog on mount
-  useEffect(() => {
-    async function loadCatalog() {
-      try {
-        const res = await fetch('/api/catalog');
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.inventory)) {
-          const stockMap: Record<string, number> = {};
-          data.inventory.forEach((item: { sku: string; remaining: number }) => {
-            stockMap[item.sku] = item.remaining;
-          });
-          setStock(stockMap as unknown as InventoryStock);
-        }
-      } catch (err) {
-        console.error('Failed to load initial catalog:', err);
+  // 1. Fetch live stock and catalog
+  const loadCatalog = useCallback(async () => {
+    try {
+      const res = await fetch('/api/catalog');
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.inventory)) {
+        const stockMap: Record<string, number> = {};
+        data.inventory.forEach((item: { sku: string; remaining: number }) => {
+          stockMap[item.sku] = item.remaining;
+        });
+        setStock(stockMap as unknown as InventoryStock);
       }
+    } catch (err) {
+      console.error('Failed to load catalog:', err);
     }
-    loadCatalog();
   }, []);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
 
   // 2. Debounce-fetch authoritative quote whenever state changes
   const quoteTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,6 +146,7 @@ export default function BookingPage() {
                   dispatch={dispatch}
                   quote={quote}
                   onBack={() => handleNavigateStep('ATTENDEE_DETAILS')}
+                  onRefreshStock={loadCatalog}
                   onSuccess={(ref) => {
                     handleNavigateStep('CONFIRMED');
                   }}
@@ -165,8 +168,14 @@ export default function BookingPage() {
         )}
       </main>
 
+      {/* Evaluator Live Stock Inspector & Admin Tools Bar */}
+      <EvaluatorToolsBar
+        stock={stock}
+        onStockReset={loadCatalog}
+      />
+
       {/* Footer */}
-      <footer className="mt-auto border-t border-white/10 py-6 text-center text-xs text-white/50 px-4">
+      <footer className="border-t border-white/10 py-6 text-center text-xs text-white/50 px-4">
         <p>© 2026 Radha Krishna Temple of Dallas. All rights reserved.</p>
         <p className="mt-1">
           Sharad Utsav Cultural Festival • 1450 N Watters Rd, Allen, TX 75013 • (469) 795-9130

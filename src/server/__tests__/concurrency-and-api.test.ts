@@ -4,6 +4,7 @@ import { GET as getCatalogRoute } from '../../app/api/catalog/route';
 import { GET as getBookingByRefRoute } from '../../app/api/bookings/[reference]/route';
 import { POST as checkoutRoute } from '../../app/api/bookings/checkout/route';
 import { POST as quoteRoute } from '../../app/api/bookings/quote/route';
+import { POST as resetStockRoute } from '../../app/api/admin/reset-stock/route';
 import { ensureCatalogSeeded, getDb } from '../../db';
 import type { BookingInput } from '../../domain/types';
 import { createBookingTransaction } from '../booking-service';
@@ -257,5 +258,34 @@ describe('API Route Handlers: Catalog, Quote, and Reference Lookup', () => {
       params: Promise.resolve({ reference: 'SU26-NONEXIST' }),
     });
     expect(unknownRes.status).toBe(404);
+  });
+
+  it('POST /api/admin/reset-stock resets depleted stock back to assessment baseline', async () => {
+    // 1. Deplete workshop spots
+    const payload = createValidBookingPayload(2);
+    const checkoutReq = new Request('http://localhost:3000/api/bookings/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': 'deplete-key-admin',
+      },
+      body: JSON.stringify(payload),
+    });
+    await checkoutRoute(checkoutReq);
+
+    // Verify stock is now 0
+    const db = getDb();
+    const itemBeforeReset = await db.getInventoryItem('GARBA_WORKSHOP');
+    expect(itemBeforeReset?.remaining).toBe(0);
+
+    // 2. Call admin reset endpoint
+    const resetRes = await resetStockRoute();
+    expect(resetRes.status).toBe(200);
+    const resetData = await resetRes.json();
+    expect(resetData.ok).toBe(true);
+
+    // 3. Verify stock is restored to 2
+    const itemAfterReset = await db.getInventoryItem('GARBA_WORKSHOP');
+    expect(itemAfterReset?.remaining).toBe(2);
   });
 });
