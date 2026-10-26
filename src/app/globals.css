@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer components {
+  /* Translucent dark glass cards */
+  .card-dark {
+    @apply bg-white/[0.05] border border-white/20 backdrop-blur-sm rounded-2xl;
+  }
+
+  .card-dark-hover {
+    @apply bg-white/[0.05] border border-white/20 backdrop-blur-sm rounded-2xl transition-all duration-200 hover:border-gold/60 hover:bg-white/[0.08];
+  }
+
+  /* High-contrast cream summary panels & cards */
+  .card-cream {
+    @apply bg-cream text-primaryText border border-gold/30 rounded-2xl shadow-md;
+  }
+
+  /* Headings on cream panels */
+  .heading-cream {
+    @apply text-heading font-heading font-semibold;
+  }
+
+  /* Primary gold brand button */
+  .btn-gold {
+    @apply bg-primary hover:bg-brightGold text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-gold hover:shadow-goldGlow active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Secondary outline button */
+  .btn-outline-gold {
+    @apply border border-gold/60 text-gold hover:bg-gold/10 hover:border-brightGold font-medium px-5 py-2.5 rounded-xl transition-all duration-200;
+  }
+
+  /* Badges */
+  .badge-gold {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gold/20 text-brightGold border border-gold/40;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-success/20 text-success border border-success/30;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-error/20 text-error border border-error/30;
+  }
+}
