@@ -3,9 +3,9 @@
 > **Radha Krishna Temple, Allen, Texas**
 > Tue 10 Nov – Sat 14 Nov 2026
 
-**Live URL**: [https://utsav-pass.vercel.app](https://utsav-pass.vercel.app) *(deploy pending)*
+**Live URL**: [https://utsav-pass.vercel.app/](https://utsav-pass.vercel.app/)
 
-A single-page booking flow for a 5-day Navratri festival: day passes, all-day passes, family bundles, dinner plates, dandiya sticks, and a strictly-limited Garba workshop — with atomic stock management, promo codes, and a door check-in manifest.
+A single-page booking flow for the 5-day Sharad Utsav festival (traditional Garba & Raas celebration): day passes, all-day passes, family bundles, dinner plates, dandiya sticks, and a strictly-limited Garba workshop — with atomic stock management, promo codes, and a door check-in manifest.
 
 ---
 
@@ -51,7 +51,7 @@ DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
 | `npm run dev` | Next.js dev server on port 3000 |
 | `npm run build` | Production build |
 | `npm start` | Start production server |
-| `npm test` | Run Vitest suite (42 tests) |
+| `npm test` | Run Vitest suite (43 tests) |
 | `npm run test:watch` | Vitest in watch mode |
 
 ---
@@ -275,6 +275,12 @@ The initial `DESIGN.md` was written before any code. A few things shifted during
 
 5. **Evaluator toolbar**: Added a floating `EvaluatorToolsBar` component (not in DESIGN.md) that shows live remaining stock for every SKU and provides a one-click database reset button (`POST /api/admin/reset-stock`). This makes assessment testing dramatically faster.
 
+6. **Instant 0ms quote reactivity**: The UI combines instantaneous pure-domain quote calculations with background server quote confirmation. Price totals update immediately at 0ms latency without waiting for network round-trips.
+
+7. **Atomic Family Pass bundling & cascade cleanup**: Added an atomic `ADD_FAMILY_PASS_BUNDLE` action that creates the pass and links all 4 slots (2 Adults + 2 Children) as `FAMILY_PASS_MEMBER` at zero additional ticket cost. Removing the family pass cleanly cascades to remove its bundled members.
+
+8. **"Find My Pass" lookup & session memory**: Added a navbar lookup popover and `localStorage` session memory to reopen door check-in passes after refreshing.
+
 ---
 
 ## Multi-Festival Extensibility Note
@@ -302,10 +308,10 @@ The domain layer is already structured for this — `catalog.ts`, `types.ts`, an
 ## Test Suite
 
 ```
-42 tests across 3 files — all passing
+43 tests across 3 files — all passing
 
 src/domain/__tests__/pricing-and-rules.test.ts   — 23 tests
-src/state/__tests__/booking-reducer.test.ts       — 12 tests
+src/state/__tests__/booking-reducer.test.ts       — 13 tests
 src/server/__tests__/concurrency-and-api.test.ts  —  7 tests
 ```
 

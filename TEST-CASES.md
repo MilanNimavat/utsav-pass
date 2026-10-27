@@ -85,4 +85,4 @@ Each case lists the scenario, concrete inputs, expected server + UI behaviour, a
 | Inventory & Concurrency | 3 | 2 unit tests + 1 UI handler |
 | Promo Codes & Money Math | 6 | 6 unit tests |
 | State Mutation & Resilience | 6 | 6 reducer / server tests |
-| **Total** | **28** | **42 automated tests across 3 test files** |
+| **Total** | **28** | **43 automated tests across 3 test files** |
