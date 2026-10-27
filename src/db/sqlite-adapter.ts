@@ -15,6 +15,39 @@ import type {
 const require = createRequire(import.meta.url);
 const { DatabaseSync } = require('node:sqlite');
 
+function toInventoryItemRecord(row: unknown): InventoryItemRecord | null {
+  if (!row || typeof row !== 'object') return null;
+  const r = row as Record<string, unknown>;
+  return {
+    sku: r.sku as TicketSku | ExtraSku,
+    name: String(r.name),
+    priceCents: Number(r.priceCents),
+    remaining: Number(r.remaining),
+    updatedAt: String(r.updatedAt),
+  };
+}
+
+function toBookingRecord(row: unknown): BookingRecord | null {
+  if (!row || typeof row !== 'object') return null;
+  const r = row as Record<string, unknown>;
+  return {
+    id: String(r.id),
+    reference: String(r.reference),
+    idempotencyKey: String(r.idempotencyKey),
+    bookerName: String(r.bookerName),
+    bookerEmail: String(r.bookerEmail),
+    bookerPhone: String(r.bookerPhone),
+    bookerAge: Number(r.bookerAge),
+    promoCode: r.promoCode ? String(r.promoCode) : null,
+    subtotalCents: Number(r.subtotalCents),
+    discountCents: Number(r.discountCents),
+    totalCents: Number(r.totalCents),
+    paymentStatus: 'PAID',
+    payloadJson: String(r.payloadJson),
+    createdAt: String(r.createdAt),
+  };
+}
+
 export class SqliteAdapter implements DatabaseAdapter {
   private db: DatabaseSyncType;
 
@@ -80,26 +113,31 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   async getAllInventory(): Promise<InventoryItemRecord[]> {
     const stmt = this.db.prepare('SELECT * FROM inventory_items ORDER BY sku ASC');
-    const rows = stmt.all() as unknown as InventoryItemRecord[];
+    const rawRows = stmt.all();
+    const rows: InventoryItemRecord[] = [];
+    for (const r of rawRows) {
+      const parsed = toInventoryItemRecord(r);
+      if (parsed) rows.push(parsed);
+    }
     return rows;
   }
 
   async getInventoryItem(sku: TicketSku | ExtraSku): Promise<InventoryItemRecord | null> {
     const stmt = this.db.prepare('SELECT * FROM inventory_items WHERE sku = ?');
-    const row = stmt.get(sku) as unknown as InventoryItemRecord | undefined;
-    return row || null;
+    const row = stmt.get(sku);
+    return toInventoryItemRecord(row);
   }
 
   async getBookingByIdempotencyKey(key: string): Promise<BookingRecord | null> {
     const stmt = this.db.prepare('SELECT * FROM bookings WHERE idempotencyKey = ?');
-    const row = stmt.get(key) as unknown as BookingRecord | undefined;
-    return row || null;
+    const row = stmt.get(key);
+    return toBookingRecord(row);
   }
 
   async getBookingByReference(reference: string): Promise<BookingRecord | null> {
     const stmt = this.db.prepare('SELECT * FROM bookings WHERE reference = ?');
-    const row = stmt.get(reference) as unknown as BookingRecord | undefined;
-    return row || null;
+    const row = stmt.get(reference);
+    return toBookingRecord(row);
   }
 
   async executeBookingTransaction(

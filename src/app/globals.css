@@ -45,12 +45,12 @@
 
   /* Primary gold brand button */
   .btn-gold {
-    @apply bg-primary hover:bg-brightGold text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-gold hover:shadow-goldGlow active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply bg-primary hover:bg-brightGold text-heading font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-gold hover:shadow-goldGlow active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brightGold focus-visible:ring-offset-2 focus-visible:ring-offset-primaryDark;
   }
 
   /* Secondary outline button */
   .btn-outline-gold {
-    @apply border border-gold/60 text-gold hover:bg-gold/10 hover:border-brightGold font-medium px-5 py-2.5 rounded-xl transition-all duration-200;
+    @apply border border-gold/60 text-brightGold hover:bg-gold/10 hover:border-brightGold font-medium px-5 py-2.5 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60;
   }
 
   /* Badges */

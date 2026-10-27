@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import Link from 'next/link';
+import { ExternalLink, Sparkles } from 'lucide-react';
 import { AttendeeDetailsStep } from '@/components/booking/AttendeeDetailsStep';
 import { BookingHeader } from '@/components/booking/BookingHeader';
 import { ConfirmationStep } from '@/components/booking/ConfirmationStep';
@@ -9,7 +11,9 @@ import { ExtrasStep } from '@/components/booking/ExtrasStep';
 import { PassesStep } from '@/components/booking/PassesStep';
 import { PaymentStep } from '@/components/booking/PaymentStep';
 import { QuoteSummaryCard } from '@/components/booking/QuoteSummaryCard';
-import type { BookingQuote, InventoryStock } from '@/domain/types';
+import { INITIAL_STOCK } from '@/domain/catalog';
+import { calculateBookingQuote } from '@/domain/pricing';
+import type { BookingQuote, InventoryStock, TicketSku, ExtraSku } from '@/domain/types';
 import {
   bookingReducer,
   createInitialBookingState,
@@ -22,6 +26,19 @@ export default function BookingPage() {
   const [stock, setStock] = useState<InventoryStock | null>(null);
   const [quote, setQuote] = useState<BookingQuote | null>(null);
   const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+  const [recentRef, setRecentRef] = useState<string | null>(null);
+
+  // Check for recently completed booking in localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('utsav_last_booking_ref');
+        if (stored) setRecentRef(stored);
+      } catch {
+        // Ignore localStorage error
+      }
+    }
+  }, []);
 
   // 1. Fetch live stock and catalog
   const loadCatalog = useCallback(async () => {
@@ -29,11 +46,13 @@ export default function BookingPage() {
       const res = await fetch('/api/catalog');
       const data = await res.json();
       if (data.ok && Array.isArray(data.inventory)) {
-        const stockMap: Record<string, number> = {};
+        const stockMap: InventoryStock = { ...INITIAL_STOCK };
         data.inventory.forEach((item: { sku: string; remaining: number }) => {
-          stockMap[item.sku] = item.remaining;
+          if (item.sku in stockMap) {
+            stockMap[item.sku as TicketSku | ExtraSku] = item.remaining;
+          }
         });
-        setStock(stockMap as unknown as InventoryStock);
+        setStock(stockMap);
       }
     } catch (err) {
       console.error('Failed to load catalog:', err);
@@ -44,7 +63,12 @@ export default function BookingPage() {
     loadCatalog();
   }, [loadCatalog]);
 
-  // 2. Debounce-fetch authoritative quote whenever state changes
+  // 2. Real-time pure domain quote calculation (instant 0ms UI reactivity)
+  const realTimeQuote = useMemo(() => {
+    return calculateBookingQuote(stateToBookingInput(state), stock ?? undefined);
+  }, [state, stock]);
+
+  // 3. Debounce-fetch authoritative server quote whenever state changes
   const quoteTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -52,6 +76,8 @@ export default function BookingPage() {
       clearTimeout(quoteTimerRef.current);
     }
 
+    // Reset server quote so UI seamlessly reflects new realTimeQuote instantly
+    setQuote(null);
     setIsLoadingQuote(true);
 
     quoteTimerRef.current = setTimeout(async () => {
@@ -82,6 +108,9 @@ export default function BookingPage() {
     };
   }, [state.attendees, state.familyPasses, state.extras, state.promoCode]);
 
+  // Active quote is either server-confirmed quote or instantaneous real-time quote
+  const activeQuote = quote ?? realTimeQuote;
+
   // Step navigation helpers
   const handleNavigateStep = (step: FlowStep) => {
     dispatch({ type: 'SET_STEP', step });
@@ -94,6 +123,29 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-primaryDark text-white flex flex-col font-sans pb-24 lg:pb-12">
+      {/* Recent Booking Notification Banner (if user refreshed after completing a pass) */}
+      {recentRef && state.step !== 'CONFIRMED' && (
+        <div className="bg-gold/15 border-b border-gold/30 px-4 py-2 text-xs flex items-center justify-center gap-2 text-white">
+          <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span>Have an existing booking?</span>
+          <Link
+            href={`/bookings/${recentRef}`}
+            className="text-brightGold font-bold hover:underline inline-flex items-center gap-1"
+          >
+            <span>View your pass ({recentRef})</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setRecentRef(null)}
+            className="text-white/40 hover:text-white ml-2 text-sm leading-none"
+            title="Dismiss notification"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Top Banner & Navigation Header */}
       <BookingHeader
         currentStep={state.step}
@@ -144,7 +196,7 @@ export default function BookingPage() {
                 <PaymentStep
                   state={state}
                   dispatch={dispatch}
-                  quote={quote}
+                  quote={activeQuote}
                   onBack={() => handleNavigateStep('ATTENDEE_DETAILS')}
                   onRefreshStock={loadCatalog}
                   onSuccess={(ref) => {
@@ -159,7 +211,7 @@ export default function BookingPage() {
               <QuoteSummaryCard
                 state={state}
                 dispatch={dispatch}
-                quote={quote}
+                quote={activeQuote}
                 isLoadingQuote={isLoadingQuote}
                 onProceedToPayment={() => handleNavigateStep('PAYMENT')}
               />

@@ -89,6 +89,10 @@ export const extrasSelectionSchema = z.object({
   ),
 });
 
+export interface ValidationOptions {
+  requireContactInfo?: boolean;
+}
+
 /**
  * Returns the set of festival dates an attendee is scheduled to attend.
  */
@@ -180,7 +184,8 @@ export function computeRequiredStock(
  */
 export function validateBooking(
   booking: BookingInput,
-  currentStock?: InventoryStock
+  currentStock?: InventoryStock,
+  options?: ValidationOptions
 ): ValidationResult {
   const errors: ValidationError[] = [];
 
@@ -220,26 +225,28 @@ export function validateBooking(
       });
     }
 
-    if (!booker.fullName || booker.fullName.trim().length === 0) {
-      errors.push({
-        field: 'primaryBooker.fullName',
-        message: 'Primary booker full name is required',
-      });
-    }
+    if (options?.requireContactInfo !== false) {
+      if (!booker.fullName || booker.fullName.trim().length === 0) {
+        errors.push({
+          field: 'primaryBooker.fullName',
+          message: 'Primary booker full name is required',
+        });
+      }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!booker.email || !emailRegex.test(booker.email)) {
-      errors.push({
-        field: 'primaryBooker.email',
-        message: 'A valid email address is required for the primary booker',
-      });
-    }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!booker.email || !emailRegex.test(booker.email)) {
+        errors.push({
+          field: 'primaryBooker.email',
+          message: 'A valid email address is required for the primary booker',
+        });
+      }
 
-    if (!booker.phone || booker.phone.trim().length < 7) {
-      errors.push({
-        field: 'primaryBooker.phone',
-        message: 'A valid phone number (at least 7 digits) is required for the primary booker',
-      });
+      if (!booker.phone || booker.phone.trim().length < 7) {
+        errors.push({
+          field: 'primaryBooker.phone',
+          message: 'A valid phone number (at least 7 digits) is required for the primary booker',
+        });
+      }
     }
   }
 
@@ -272,11 +279,13 @@ export function validateBooking(
     }
     attendeeMap.set(attendee.id, attendee);
 
-    if (!attendee.fullName || attendee.fullName.trim().length === 0) {
-      errors.push({
-        field: `${prefix}.fullName`,
-        message: 'Attendee full name is required',
-      });
+    if (options?.requireContactInfo !== false) {
+      if (!attendee.fullName || attendee.fullName.trim().length === 0) {
+        errors.push({
+          field: `${prefix}.fullName`,
+          message: 'Attendee full name is required',
+        });
+      }
     }
 
     if (

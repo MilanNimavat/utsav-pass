@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
-import { Calendar, Check, MapPin, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Calendar, Check, MapPin, Search, Sparkles, X } from 'lucide-react';
 import type { FlowStep } from '@/state/booking-reducer';
 
 interface BookingHeaderProps {
@@ -17,7 +18,17 @@ const STEPS: { id: FlowStep; number: number; label: string; shortLabel: string }
 ];
 
 export function BookingHeader({ currentStep, onNavigateStep }: BookingHeaderProps) {
+  const router = useRouter();
   const currentStepIndex = STEPS.findIndex((s) => s.id === currentStep);
+  const [isLookupOpen, setIsLookupOpen] = useState(false);
+  const [lookupRef, setLookupRef] = useState('');
+
+  const handleLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = lookupRef.trim().toUpperCase();
+    if (!clean) return;
+    router.push(`/bookings/${clean}`);
+  };
 
   return (
     <header className="w-full border-b border-white/10 bg-primaryDark/95 backdrop-blur-md sticky top-0 z-30">
@@ -43,6 +54,52 @@ export function BookingHeader({ currentStep, onNavigateStep }: BookingHeaderProp
               <MapPin className="w-3.5 h-3.5 text-primary" />
               <span>1450 N Watters Rd, Allen, TX</span>
             </span>
+
+            {/* Quick Find Booking Button & Popover */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsLookupOpen(!isLookupOpen)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold/15 hover:bg-gold/25 border border-gold/40 text-brightGold font-semibold transition-all shadow-sm"
+                title="Look up an existing pass by reference code"
+              >
+                <Search className="w-3.5 h-3.5 text-primary" />
+                <span>Find My Pass</span>
+              </button>
+
+              {isLookupOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 p-3.5 rounded-2xl bg-[#222222] border border-white/20 shadow-2xl z-50 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs text-white">
+                    <span className="font-semibold text-brightGold">Look Up Existing Booking</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsLookupOpen(false)}
+                      className="text-white/40 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleLookup} className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. SU26-XXXX"
+                      value={lookupRef}
+                      onChange={(e) => setLookupRef(e.target.value)}
+                      className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-1.5 text-xs text-white uppercase placeholder:normal-case placeholder-white/40 font-mono focus:outline-none focus:border-gold"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={!lookupRef.trim()}
+                      className="w-full btn-gold py-1.5 text-xs font-semibold disabled:opacity-40"
+                    >
+                      View Booking Manifest
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

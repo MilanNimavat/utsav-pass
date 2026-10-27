@@ -250,6 +250,38 @@ describe('Booking Reducer: Family Pass Lifecycle', () => {
     // Attendee must be reverted to DAY_ADULT
     expect(state.attendees[0].ticketAssignment.kind).toBe('DAY_ADULT');
   });
+
+  it('adds a family pass bundle with 4 linked members, and removes those members when the pass is removed', () => {
+    let state = createInitialBookingState();
+    expect(state.attendees.length).toBe(1);
+
+    // Add family pass bundle
+    state = bookingReducer(state, {
+      type: 'ADD_FAMILY_PASS_BUNDLE',
+      id: 'fp-bundle-1',
+      day: '2026-11-10',
+    });
+
+    expect(state.familyPasses.length).toBe(1);
+    expect(state.attendees.length).toBe(5); // Primary + 2 Adults + 2 Children
+
+    const familyMembers = state.attendees.filter(
+      (a) =>
+        a.ticketAssignment.kind === 'FAMILY_PASS_MEMBER' &&
+        a.ticketAssignment.familyPassId === 'fp-bundle-1'
+    );
+    expect(familyMembers.length).toBe(4);
+
+    // Remove the family pass
+    state = bookingReducer(state, {
+      type: 'REMOVE_FAMILY_PASS',
+      id: 'fp-bundle-1',
+    });
+
+    expect(state.familyPasses.length).toBe(0);
+    expect(state.attendees.length).toBe(1); // Reverts back to primary booker only!
+    expect(state.attendees[0].isPrimaryBooker).toBe(true);
+  });
 });
 
 describe('Booking Reducer: Idempotency Key Invalidation & Contact Updates', () => {

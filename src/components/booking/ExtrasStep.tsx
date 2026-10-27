@@ -105,6 +105,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
               type="button"
+              aria-label="Decrease dandiya pairs"
               disabled={state.extras.dandiyaPairs <= 0}
               onClick={() =>
                 dispatch({
@@ -112,7 +113,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
                   quantity: state.extras.dandiyaPairs - 1,
                 })
               }
-              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white transition-all"
+              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white transition-all focus:outline-none focus:ring-2 focus:ring-gold/50"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -123,6 +124,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
 
             <button
               type="button"
+              aria-label="Increase dandiya pairs"
               disabled={state.extras.dandiyaPairs >= 50}
               onClick={() =>
                 dispatch({
@@ -130,7 +132,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
                   quantity: state.extras.dandiyaPairs + 1,
                 })
               }
-              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white transition-all"
+              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white transition-all focus:outline-none focus:ring-2 focus:ring-gold/50"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -196,6 +198,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
+                        aria-label={`Decrease dinner plates for ${FESTIVAL_DATE_LABELS[day]}`}
                         disabled={currentPlates <= 0}
                         onClick={() =>
                           dispatch({
@@ -204,7 +207,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
                             quantity: currentPlates - 1,
                           })
                         }
-                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white"
+                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white focus:outline-none focus:ring-2 focus:ring-gold/50"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
@@ -215,6 +218,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
 
                       <button
                         type="button"
+                        aria-label={`Increase dinner plates for ${FESTIVAL_DATE_LABELS[day]}`}
                         disabled={currentPlates >= maxPlates}
                         onClick={() =>
                           dispatch({
@@ -223,7 +227,7 @@ export function ExtrasStep({ state, dispatch, stock, onProceed, onBack }: Extras
                             quantity: currentPlates + 1,
                           })
                         }
-                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white"
+                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center text-white focus:outline-none focus:ring-2 focus:ring-gold/50"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>

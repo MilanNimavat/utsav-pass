@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const liveStock = await getLiveStockMap();
-    const validation = validateBooking(body, liveStock);
+    const validation = validateBooking(body, liveStock, { requireContactInfo: false });
 
     if (!validation.valid) {
       return NextResponse.json(

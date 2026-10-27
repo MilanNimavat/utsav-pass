@@ -130,6 +130,13 @@ export function PaymentStep({
 
       // Successful confirmation
       const reference = data.booking?.reference || 'SU26-CONFIRMED';
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('utsav_last_booking_ref', reference);
+        } catch {
+          // Ignore localStorage errors
+        }
+      }
       dispatch({ type: 'SET_CONFIRMED', reference });
       if (onRefreshStock) {
         await onRefreshStock();
@@ -299,51 +306,55 @@ export function PaymentStep({
           {/* Card Inputs */}
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-white/70 mb-1">
+              <label htmlFor="card-number" className="block text-xs font-medium text-white/70 mb-1">
                 Card Number
               </label>
               <input
+                id="card-number"
                 type="text"
                 value={cardNumber}
                 onChange={(e) => setCardNumber(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-gold"
+                className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-white/70 mb-1">
+                <label htmlFor="card-expiry" className="block text-xs font-medium text-white/70 mb-1">
                   Expiry
                 </label>
                 <input
+                  id="card-expiry"
                   type="text"
                   value={cardExpiry}
                   onChange={(e) => setCardExpiry(e.target.value)}
-                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold"
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70 mb-1">
+                <label htmlFor="card-cvc" className="block text-xs font-medium text-white/70 mb-1">
                   CVC / CVV
                 </label>
                 <input
+                  id="card-cvc"
                   type="text"
                   value={cardCvc}
                   onChange={(e) => setCardCvc(e.target.value)}
-                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold"
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-white/70 mb-1">
+                <label htmlFor="billing-zip" className="block text-xs font-medium text-white/70 mb-1">
                   Billing ZIP
                 </label>
                 <input
+                  id="billing-zip"
                   type="text"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
-                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold"
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                 />
               </div>
             </div>

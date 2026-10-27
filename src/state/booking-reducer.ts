@@ -38,6 +38,7 @@ export type BookingAction =
       fullName?: string;
       age?: number;
       isPrimaryBooker?: boolean;
+      ticketAssignment?: TicketAssignment;
     }
   | { type: 'REMOVE_ATTENDEE'; id: string }
   | {
@@ -64,6 +65,11 @@ export type BookingAction =
     }
   | {
       type: 'ADD_FAMILY_PASS';
+      id?: string;
+      day: FestivalDate;
+    }
+  | {
+      type: 'ADD_FAMILY_PASS_BUNDLE';
       id?: string;
       day: FestivalDate;
     }
@@ -324,7 +330,7 @@ export function bookingReducer(
         fullName: action.fullName ?? '',
         age,
         isPrimaryBooker: action.isPrimaryBooker ?? false,
-        ticketAssignment: getDefaultAssignmentForAge(age),
+        ticketAssignment: action.ticketAssignment ?? getDefaultAssignmentForAge(age),
       };
 
       const nextState: BookingState = {
@@ -460,9 +466,61 @@ export function bookingReducer(
       return reconcileState(nextState);
     }
 
-    case 'REMOVE_FAMILY_PASS': {
+    case 'ADD_FAMILY_PASS_BUNDLE': {
+      const passId = action.id || `fp_${Date.now()}`;
+      const newPass: FamilyPassInstance = {
+        id: passId,
+        day: action.day,
+      };
+
+      const adult1: Attendee = {
+        id: `att_${Date.now()}_a1_${Math.random().toString(36).substring(2, 5)}`,
+        fullName: 'Adult 1',
+        age: 35,
+        ticketAssignment: { kind: 'FAMILY_PASS_MEMBER', familyPassId: passId, role: 'ADULT' },
+      };
+      const adult2: Attendee = {
+        id: `att_${Date.now()}_a2_${Math.random().toString(36).substring(2, 5)}`,
+        fullName: 'Adult 2',
+        age: 32,
+        ticketAssignment: { kind: 'FAMILY_PASS_MEMBER', familyPassId: passId, role: 'ADULT' },
+      };
+      const child1: Attendee = {
+        id: `att_${Date.now()}_c1_${Math.random().toString(36).substring(2, 5)}`,
+        fullName: 'Child 1',
+        age: 8,
+        ticketAssignment: { kind: 'FAMILY_PASS_MEMBER', familyPassId: passId, role: 'CHILD' },
+      };
+      const child2: Attendee = {
+        id: `att_${Date.now()}_c2_${Math.random().toString(36).substring(2, 5)}`,
+        fullName: 'Child 2',
+        age: 6,
+        ticketAssignment: { kind: 'FAMILY_PASS_MEMBER', familyPassId: passId, role: 'CHILD' },
+      };
+
       const nextState: BookingState = {
         ...state,
+        familyPasses: [...state.familyPasses, newPass],
+        attendees: [...state.attendees, adult1, adult2, child1, child2],
+        idempotencyKey: generateIdempotencyKey(),
+      };
+      return reconcileState(nextState);
+    }
+
+    case 'REMOVE_FAMILY_PASS': {
+      // Automatically remove any non-primary attendees that were assigned to this family pass
+      const remainingAttendees = state.attendees.filter(
+        (a) =>
+          a.isPrimaryBooker ||
+          !(
+            a.ticketAssignment.kind === 'FAMILY_PASS_MEMBER' &&
+            a.ticketAssignment.familyPassId === action.id
+          )
+      );
+
+      const nextState: BookingState = {
+        ...state,
+        attendees: remainingAttendees,
         familyPasses: state.familyPasses.filter((p) => p.id !== action.id),
         idempotencyKey: generateIdempotencyKey(),
       };

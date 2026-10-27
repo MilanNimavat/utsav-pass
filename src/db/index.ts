@@ -8,6 +8,13 @@ let globalDb: DatabaseAdapter | null = null;
 export function getDb(): DatabaseAdapter {
   if (globalDb) return globalDb;
 
+  // In test environments, always use isolated in-memory SQLite (zero external network dependency)
+  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  if (isTest) {
+    globalDb = new SqliteAdapter(':memory:');
+    return globalDb;
+  }
+
   const databaseUrl = process.env.DATABASE_URL;
 
   // Use PostgreSQL via Prisma if DATABASE_URL points to postgres/postgresql
@@ -20,8 +27,7 @@ export function getDb(): DatabaseAdapter {
   }
 
   // Otherwise, use zero-config local SQLite
-  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-  const sqlitePath = isTest ? ':memory:' : process.env.SQLITE_DB_PATH || 'utsav.db';
+  const sqlitePath = process.env.SQLITE_DB_PATH || 'utsav.db';
 
   globalDb = new SqliteAdapter(sqlitePath);
   return globalDb;

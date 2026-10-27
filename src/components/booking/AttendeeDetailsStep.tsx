@@ -93,7 +93,7 @@ export function AttendeeDetailsStep({
                   fullName: e.target.value,
                 })
               }
-              className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold"
+              className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
             />
             {!isBookerNameValid && (
               <span className="text-[11px] text-error mt-1 block">
@@ -124,7 +124,7 @@ export function AttendeeDetailsStep({
                   age: isNaN(val) ? 0 : val,
                 });
               }}
-              className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gold ${
+              className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50 ${
                 !isBookerAgeValid ? 'border-error' : 'border-white/20'
               }`}
             />
@@ -157,7 +157,7 @@ export function AttendeeDetailsStep({
                     email: e.target.value,
                   })
                 }
-                className={`w-full bg-white/5 border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold ${
+                className={`w-full bg-white/5 border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50 ${
                   primaryBooker.email && !isEmailValid ? 'border-error' : 'border-white/20'
                 }`}
               />
@@ -191,7 +191,7 @@ export function AttendeeDetailsStep({
                     phone: e.target.value,
                   })
                 }
-                className="w-full bg-white/5 border border-white/20 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold"
+                className="w-full bg-white/5 border border-white/20 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
               />
             </div>
             {primaryBooker.phone && !isPhoneValid && (
@@ -264,7 +264,7 @@ export function AttendeeDetailsStep({
                               fullName: e.target.value,
                             })
                           }
-                          className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold"
+                          className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                         />
                       </div>
 
@@ -288,7 +288,7 @@ export function AttendeeDetailsStep({
                                 phone: e.target.value,
                               })
                             }
-                            className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold"
+                            className="w-full bg-white/5 border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                           />
                         </div>
                       ) : (

@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Copy,
   Download,
+  ExternalLink,
+  Link as LinkIcon,
   MapPin,
   Printer,
   QrCode,
@@ -56,12 +58,20 @@ export function ConfirmationView({
   manifest,
   onBookAnother,
 }: ConfirmedBookingViewProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedRef, setCopiedRef] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopyRef = () => {
     navigator.clipboard.writeText(reference);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedRef(true);
+    setTimeout(() => setCopiedRef(false), 2000);
+  };
+
+  const handleCopyLink = () => {
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/bookings/${reference}` : `/bookings/${reference}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
@@ -86,20 +96,54 @@ export function ConfirmationView({
           </p>
         </div>
 
-        {/* Unique Booking Reference Code Pill */}
-        <div className="inline-flex items-center gap-3 p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/20 mt-2">
-          <span className="text-xs uppercase tracking-wider text-white/60">Booking Reference:</span>
-          <span className="font-mono text-xl sm:text-2xl font-bold text-brightGold tracking-wider">
-            {reference}
-          </span>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
-            title="Copy booking reference"
-          >
-            {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-          </button>
+        {/* Unique Booking Reference Code Pill & Shareable Link Options */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-3">
+          <div className="inline-flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/5 border border-white/20">
+            <span className="text-xs uppercase tracking-wider text-white/60">Booking Reference:</span>
+            <span className="font-mono text-xl sm:text-2xl font-bold text-brightGold tracking-wider">
+              {reference}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyRef}
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+              title="Copy booking reference code"
+            >
+              {copiedRef ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-medium transition-all"
+              title="Copy full public pass URL to clipboard"
+            >
+              {copiedLink ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                  <span className="text-success font-semibold">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <LinkIcon className="w-3.5 h-3.5 text-primary" />
+                  <span>Copy Shareable Link</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={`/bookings/${reference}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/40 text-brightGold hover:text-white text-xs font-semibold transition-all"
+              title="Open public pass page in a new browser tab"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-primary" />
+              <span>Open Public Pass</span>
+            </a>
+          </div>
         </div>
       </div>
 

@@ -23,27 +23,105 @@ class OutOfStockException extends Error {
 
 export class PrismaAdapter implements DatabaseAdapter {
   private prisma: PrismaClient;
+  private schemaInitialized = false;
 
   constructor(prismaClient?: PrismaClient) {
     this.prisma = prismaClient || new PrismaClient();
   }
 
+  private async initializeSchemaIfNeeded(): Promise<void> {
+    if (this.schemaInitialized) return;
+    try {
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "inventory_items" (
+          "sku" TEXT NOT NULL,
+          "name" TEXT NOT NULL,
+          "priceCents" INTEGER NOT NULL,
+          "remaining" INTEGER NOT NULL,
+          "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "inventory_items_pkey" PRIMARY KEY ("sku")
+        );
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "bookings" (
+          "id" TEXT NOT NULL,
+          "reference" TEXT NOT NULL,
+          "idempotencyKey" TEXT NOT NULL,
+          "bookerName" TEXT NOT NULL,
+          "bookerEmail" TEXT NOT NULL,
+          "bookerPhone" TEXT NOT NULL,
+          "bookerAge" INTEGER NOT NULL,
+          "promoCode" TEXT,
+          "subtotalCents" INTEGER NOT NULL,
+          "discountCents" INTEGER NOT NULL,
+          "totalCents" INTEGER NOT NULL,
+          "paymentStatus" TEXT NOT NULL DEFAULT 'PAID',
+          "payloadJson" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "bookings_pkey" PRIMARY KEY ("id")
+        );
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        CREATE UNIQUE INDEX IF NOT EXISTS "bookings_reference_key" ON "bookings"("reference");
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        CREATE UNIQUE INDEX IF NOT EXISTS "bookings_idempotencyKey_key" ON "bookings"("idempotencyKey");
+      `);
+
+      this.schemaInitialized = true;
+    } catch {
+      // Proceed even if DDL execution fails (e.g. restricted permissions or handled by prisma db push)
+    }
+  }
+
   async ensureCatalogSeeded(): Promise<void> {
-    const count = await this.prisma.inventoryItem.count();
-    if (count === 0) {
-      const skus = Object.keys(INITIAL_STOCK) as (TicketSku | ExtraSku)[];
-      await this.prisma.$transaction(
-        skus.map((sku) =>
-          this.prisma.inventoryItem.create({
-            data: {
-              sku,
-              name: SKU_DETAILS[sku].name,
-              priceCents: SKU_PRICES_CENTS[sku],
-              remaining: INITIAL_STOCK[sku],
-            },
-          })
-        )
-      );
+    await this.initializeSchemaIfNeeded();
+
+    try {
+      const count = await this.prisma.inventoryItem.count();
+      if (count === 0) {
+        const skus = Object.keys(INITIAL_STOCK) as (TicketSku | ExtraSku)[];
+        await this.prisma.$transaction(
+          skus.map((sku) =>
+            this.prisma.inventoryItem.create({
+              data: {
+                sku,
+                name: SKU_DETAILS[sku].name,
+                priceCents: SKU_PRICES_CENTS[sku],
+                remaining: INITIAL_STOCK[sku],
+              },
+            })
+          )
+        );
+      }
+    } catch (err: unknown) {
+      const errorWithCode = err as { code?: string };
+      // P2021: table does not exist
+      if (errorWithCode?.code === 'P2021') {
+        this.schemaInitialized = false;
+        await this.initializeSchemaIfNeeded();
+        const count = await this.prisma.inventoryItem.count();
+        if (count === 0) {
+          const skus = Object.keys(INITIAL_STOCK) as (TicketSku | ExtraSku)[];
+          await this.prisma.$transaction(
+            skus.map((sku) =>
+              this.prisma.inventoryItem.create({
+                data: {
+                  sku,
+                  name: SKU_DETAILS[sku].name,
+                  priceCents: SKU_PRICES_CENTS[sku],
+                  remaining: INITIAL_STOCK[sku],
+                },
+              })
+            )
+          );
+        }
+      } else {
+        throw err;
+      }
     }
   }
 

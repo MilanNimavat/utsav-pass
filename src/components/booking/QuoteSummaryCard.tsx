@@ -229,13 +229,13 @@ export function QuoteSummaryCard({
               value={promoInput}
               placeholder="e.g. SEVA10"
               onChange={(e) => setPromoInput(e.target.value)}
-              className="flex-1 bg-white border border-gold/30 rounded-xl px-3 py-1.5 text-xs text-heading uppercase placeholder:normal-case placeholder-primaryText/40 focus:outline-none focus:border-gold"
+              className="flex-1 bg-white border border-gold/30 rounded-xl px-3 py-1.5 text-xs text-heading uppercase placeholder:normal-case placeholder-primaryText/40 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/40"
             />
             <button
               type="button"
               disabled={!promoInput.trim()}
               onClick={() => handleApplyPromo(promoInput)}
-              className="px-3 py-1.5 bg-primary hover:bg-brightGold text-white font-semibold rounded-xl text-xs disabled:opacity-40 transition-all"
+              className="px-3 py-1.5 bg-primary hover:bg-brightGold text-heading font-semibold rounded-xl text-xs disabled:opacity-40 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               Apply
             </button>
@@ -311,17 +311,19 @@ export function QuoteSummaryCard({
             {/* Promo input in mobile */}
             <div className="pt-2 border-t border-gold/20 flex gap-1.5">
               <input
+                id="mobile-promo-input"
+                aria-label="Promo or Seva Code"
                 type="text"
                 value={promoInput}
                 placeholder="Promo Code"
                 onChange={(e) => setPromoInput(e.target.value)}
-                className="flex-1 bg-white border border-gold/30 rounded-lg px-2.5 py-1 text-xs text-heading uppercase"
+                className="flex-1 bg-white border border-gold/30 rounded-lg px-2.5 py-1 text-xs text-heading uppercase focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/40"
               />
               <button
                 type="button"
                 disabled={!promoInput.trim()}
                 onClick={() => handleApplyPromo(promoInput)}
-                className="px-3 py-1 bg-primary text-white font-semibold rounded-lg text-xs"
+                className="px-3 py-1 bg-primary hover:bg-brightGold text-heading font-semibold rounded-lg text-xs disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 Apply
               </button>

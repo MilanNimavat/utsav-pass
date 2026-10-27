@@ -27,33 +27,9 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
 
   // Helper to add a complete 4-member Family Pass
   const handleAddFamilyPassBundle = () => {
-    const passId = `fp_${Date.now()}`;
-    const defaultDay: FestivalDate = '2026-11-10';
-
-    // 1. Add Family Pass instance
-    dispatch({ type: 'ADD_FAMILY_PASS', id: passId, day: defaultDay });
-
-    // 2. Check if we can assign existing members or if we need new ones
-    // We add 2 Adults and 2 Children linked to this pass
     dispatch({
-      type: 'ADD_ATTENDEE',
-      fullName: 'Adult 1',
-      age: 32,
-    });
-    dispatch({
-      type: 'ADD_ATTENDEE',
-      fullName: 'Adult 2',
-      age: 30,
-    });
-    dispatch({
-      type: 'ADD_ATTENDEE',
-      fullName: 'Child 1',
-      age: 8,
-    });
-    dispatch({
-      type: 'ADD_ATTENDEE',
-      fullName: 'Child 2',
-      age: 6,
+      type: 'ADD_FAMILY_PASS_BUNDLE',
+      day: '2026-11-10',
     });
   };
 
@@ -164,7 +140,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                           day: e.target.value as FestivalDate,
                         })
                       }
-                      className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-gold"
+                      className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50"
                     >
                       {FESTIVAL_DATES.map((d) => (
                         <option key={d} value={d} className="bg-primaryDark text-white">
@@ -176,8 +152,9 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
 
                   <button
                     type="button"
+                    aria-label="Remove Family Pass"
                     onClick={() => dispatch({ type: 'REMOVE_FAMILY_PASS', id: pass.id })}
-                    className="p-1.5 text-white/50 hover:text-error hover:bg-white/5 rounded-lg transition-all"
+                    className="p-1.5 text-white/50 hover:text-error hover:bg-white/5 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-error/50"
                     title="Remove Family Pass"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -223,8 +200,9 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                 {!isPrimary && state.attendees.length > 1 && (
                   <button
                     type="button"
+                    aria-label={`Remove attendee ${attendee.fullName || 'member'}`}
                     onClick={() => dispatch({ type: 'REMOVE_ATTENDEE', id: attendee.id })}
-                    className="inline-flex items-center gap-1 text-xs text-white/50 hover:text-error transition-colors self-start sm:self-auto"
+                    className="inline-flex items-center gap-1 text-xs text-white/50 hover:text-error transition-colors self-start sm:self-auto focus:outline-none focus:ring-2 focus:ring-error/50 rounded-lg px-2 py-1"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Remove</span>
@@ -279,8 +257,8 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                         age: isNaN(val) ? 0 : val,
                       });
                     }}
-                    className={`w-full bg-white/5 border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-gold transition-all ${
-                      isPrimary && age < 18 ? 'border-error ring-1 ring-error' : 'border-white/20'
+                    className={`w-full bg-white/5 border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/50 transition-all ${
+                      isPrimary && age < 18 ? 'border-error ring-2 ring-error' : 'border-white/20'
                     }`}
                   />
                 </div>
@@ -288,8 +266,32 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
 
               {/* Age Eligibility Feedback & Pass Type Selection */}
               <div className="mt-4 pt-3 border-t border-white/10">
+                {/* Family Pass Member Indicator */}
+                {assignment.kind === 'FAMILY_PASS_MEMBER' && (
+                  <div className="p-3.5 rounded-xl bg-gold/10 border border-gold/40 flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs sm:text-sm font-semibold text-brightGold">
+                          Family Pass Member ({assignment.role === 'ADULT' ? 'Adult (Ages 12+)' : 'Child (Ages 5–11)'})
+                        </div>
+                        <span className="badge-gold text-[10px]">Included in $40 Bundle</span>
+                      </div>
+                      <p className="text-xs text-white/70 mt-1">
+                        General admission on{' '}
+                        <strong className="text-white">
+                          {FESTIVAL_DATE_LABELS[
+                            state.familyPasses.find((p) => p.id === assignment.familyPassId)?.day || '2026-11-10'
+                          ]}
+                        </strong>{' '}
+                        is fully covered by the Family Pass. No individual ticket needed!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* 1. Age 0–4 (Under 5 Toddler) */}
-                {age < 5 && (
+                {age < 5 && assignment.kind !== 'FAMILY_PASS_MEMBER' && (
                   <div className="p-3 rounded-xl bg-success/10 border border-success/30 flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
                     <div>
@@ -338,7 +340,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                 )}
 
                 {/* 2. Age 5–11 (Child Pass Options) */}
-                {age >= 5 && age <= 11 && (
+                {age >= 5 && age <= 11 && assignment.kind !== 'FAMILY_PASS_MEMBER' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold uppercase tracking-wider text-brightGold">
@@ -351,7 +353,8 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Option A: Child Day Pass */}
-                      <div
+                      <button
+                        type="button"
                         onClick={() => {
                           if (assignment.kind !== 'DAY_CHILD') {
                             dispatch({
@@ -364,7 +367,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                             });
                           }
                         }}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        className={`text-left w-full p-3.5 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                           assignment.kind === 'DAY_CHILD'
                             ? 'bg-primary/10 border-primary ring-1 ring-primary'
                             : 'bg-white/5 border-white/15 hover:border-white/30'
@@ -381,10 +384,11 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                         <p className="text-xs text-white/60 mt-1">
                           Pick individual evenings. Ideal for visiting 1 to 3 days.
                         </p>
-                      </div>
+                      </button>
 
                       {/* Option B: Child All-Day Pass */}
-                      <div
+                      <button
+                        type="button"
                         onClick={() => {
                           if (assignment.kind !== 'ALL_DAY_CHILD') {
                             dispatch({
@@ -394,7 +398,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                             });
                           }
                         }}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        className={`text-left w-full p-3.5 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                           assignment.kind === 'ALL_DAY_CHILD'
                             ? 'bg-primary/10 border-primary ring-1 ring-primary'
                             : 'bg-white/5 border-white/15 hover:border-white/30'
@@ -411,7 +415,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                         <p className="text-xs text-white/60 mt-1">
                           Covers all 5 festival evenings. Saves $10 vs 5 single day passes.
                         </p>
-                      </div>
+                      </button>
                     </div>
 
                     {/* Day selector if Child Day Pass selected */}
@@ -481,7 +485,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                 )}
 
                 {/* 3. Age 12+ (Adult Pass Options) */}
-                {age >= 12 && (
+                {age >= 12 && assignment.kind !== 'FAMILY_PASS_MEMBER' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold uppercase tracking-wider text-brightGold">
@@ -494,7 +498,8 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Option A: Adult Day Pass */}
-                      <div
+                      <button
+                        type="button"
                         onClick={() => {
                           if (assignment.kind !== 'DAY_ADULT') {
                             dispatch({
@@ -507,7 +512,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                             });
                           }
                         }}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        className={`text-left w-full p-3.5 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                           assignment.kind === 'DAY_ADULT'
                             ? 'bg-primary/10 border-primary ring-1 ring-primary'
                             : 'bg-white/5 border-white/15 hover:border-white/30'
@@ -524,7 +529,7 @@ export function PassesStep({ state, dispatch, stock, onProceed }: PassesStepProp
                         <p className="text-xs text-white/60 mt-1">
                           Select 1 or more specific festival evenings.
                         </p>
-                      </div>
+                      </button>
 
                       {/* Option B: Adult All-Day Pass (SOLD OUT) */}
                       <div className="p-3.5 rounded-xl border border-white/10 bg-white/[0.02] opacity-60 cursor-not-allowed relative">
